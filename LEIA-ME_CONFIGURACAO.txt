@@ -1,0 +1,45 @@
+LUXX STORE AD — VERSÃO PARA CLOUDFLARE PAGES COM PAINEL EDITÁVEL
+
+O visual e a interface da loja foram preservados como base. As alterações técnicas são para substituir o backend PHP/MySQL, que não é executado pelo Cloudflare Pages, por Pages Functions + D1 e armazenamento de imagens R2.
+
+IMPORTANTE: NÃO envie somente o ZIP ao painel do Cloudflare. Para que a pasta functions funcione, publique este projeto por integração com GitHub. Não é necessário instalar programas no celular.
+
+ARQUIVOS NA RAIZ
+- index.html: loja pública, com a interface de edição existente.
+- functions/: login administrativo e APIs do site.
+- schema.sql: tabelas do banco D1.
+
+PUBLICAÇÃO PELO NAVEGADOR
+1. Extraia este ZIP no telefone ou computador.
+2. No GitHub, abra o repositório da loja. Envie o conteúdo extraído para a RAIZ do repositório, não envie apenas o ZIP. A pasta functions deve ficar no mesmo nível de index.html. Confirme as alterações (Commit changes).
+3. No Cloudflare, use Workers & Pages > Create application > Pages > Connect to Git, selecione esse repositório e a branch main. Se o projeto atual foi criado por upload manual, crie um novo projeto Pages conectado ao GitHub, pois um projeto de upload direto não passa a suportar Functions só por receber o ZIP.
+4. Configure Build command vazio/None e Build output directory como . (ponto). Root directory deve ser / ou a raiz do repositório. Publique.
+
+CONFIGURAR BANCO D1
+5. No Cloudflare, abra Storage & databases > D1 SQL Database (o nome do menu pode variar) e crie um banco chamado luxx-store-ad.
+6. Abra o banco, entre no Console SQL e execute todo o conteúdo do arquivo schema.sql incluído neste pacote.
+7. Abra o projeto Pages > Settings > Functions > D1 database bindings. Adicione o binding com Variable name exatamente DB e selecione o banco luxx-store-ad. Salve e faça uma nova implantação.
+
+CONFIGURAR ARMAZENAMENTO DE FOTOS (R2)
+8. No Cloudflare, abra R2 Object Storage e crie um bucket chamado luxx-store-ad-images.
+9. No projeto Pages, vá a Settings > Functions > R2 bucket bindings e adicione o binding com Variable name exatamente IMAGES, apontando para luxx-store-ad-images. Salve e faça nova implantação.
+   O R2 guarda as imagens enviadas no painel para que elas continuem disponíveis para todos os visitantes e dispositivos. Sem esse vínculo, imagens enviadas como arquivo não serão sincronizadas no servidor.
+
+CONFIGURAR A SENHA ADMINISTRATIVA
+10. No projeto Pages, abra Settings > Variables and Secrets (ou Environment variables) e adicione, no ambiente Production:
+    - ADMIN_PASSWORD: uma senha forte que você escolher para entrar no painel.
+    - SESSION_SECRET: uma sequência aleatória longa e exclusiva, de pelo menos 32 caracteres. Não reutilize a senha administrativa aqui.
+11. Salve e faça uma nova implantação para aplicar as configurações.
+
+COMO EDITAR
+12. Abra https://SEU-DOMINIO.pages.dev/admin (substitua pelo domínio real do projeto).
+13. Entre com ADMIN_PASSWORD. Após o login, o site abre e o botão “Editar loja” aparece. As alterações no catálogo e nas configurações são sincronizadas com D1; as imagens são armazenadas em R2.
+14. Teste alterando algo pequeno, salve, feche o navegador e abra a loja em outro navegador para confirmar que os dados vieram do servidor.
+
+OBSERVAÇÕES IMPORTANTES
+- Não compartilhe a senha administrativa nem o SESSION_SECRET.
+- Se /admin mostrar erro de configuração, confira os secrets e faça nova implantação.
+- Se o salvamento indicar erro de banco, confira o binding DB e se schema.sql foi executado.
+- Se fotos não salvarem, confira o bucket R2 e o binding IMAGES.
+- O domínio pages.dev é o endereço público; /admin é o link do painel de edição.
+- Não use o upload manual de ZIP do Cloudflare para este pacote: ele não publica a pasta functions corretamente.
